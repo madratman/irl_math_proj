@@ -22,7 +22,7 @@ epsilon = [25, 20, 30]
 obs_cost = np.zeros_like(gridworld)
 
 for i in range(len(obstacles)):
-	t = np.zeros_like(gridworld)
+	t = np.zeros_like(gridworld)	
 	t[obstacles[i][0],obstacles[i][1]] = 1 # point obstacles
 	# this is matlab's bwdist in python(1-t)
 	# http://stackoverflow.com/questions/5260232/matlab-octave-bwdist-in-python-or-c
