@@ -3,45 +3,59 @@ from scipy import ndimage
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+
 # from __future__ import division
 
-waypoints=300;
+class Obstacle:
+	def __init__(self, location, semantic_class, zero_out_distance):
+		self.location = location
+		self.semantic_class = semantic_class
+		self.zero_out_distance = zero_out_distance
 
-length_x = 100
-length_y = 100
+class Gridworld:
+	def __init__(self, grid_dims=[100,100], connectivity="four_conn"):		
+		self.grid_dims = {'x':grid_dims[0], 'y':grid_dims[1]}
+		self.connectivity = connectivity
+		self.obstacles = []
+		self.semantic_obstacle_weights = {} #todo add default or make param?
+		self.cost_function = []
 
-gridworld = np.zeros([length_y, length_x])
+	def add_obstacle(self, obstacle):
+		# pass objects of Obstacle class
+		self.obstacles.append(obstacle)
 
-# todo make a dict and specify type of obstacle class 
-obstacles = []
-obstacles.append([20,30])
-obstacles.append([60,40])
-obstacles.append([70,85])
+	def add_semantic_obstacle_weights(self,weight_dict):
+		# pass something like {1:w_1, 2:w_2, 3:w_3....}
+		self.semantic_obstacle_weights = weight_dict
 
-epsilon = [25, 20, 30]
-obs_cost = np.zeros_like(gridworld)
+	def make_simple_cost_function(self):
+		cost_iter_arr = np.zeros([self.grid_dims['y'], self.grid_dims['x']])
+		obs_cost = np.zeros_like(cost_iter_arr)
+		for i in range(len(self.obstacles)):
+			cost_iter_arr[self.obstacles[i].location[0], self.obstacles[i].location[1]] = 1 # point obstacles
+			# this is matlab's bwdist in python(1-t)
+			# http://stackoverflow.com/questions/5260232/matlab-octave-bwdist-in-python-or-c
+			cost_iter_arr = ndimage.morphology.distance_transform_edt(1-cost_iter_arr) 
+			cost_iter_arr[cost_iter_arr>self.obstacles[i].zero_out_distance] = self.obstacles[i].zero_out_distance;
+			cost_iter_arr = (1.0/(2*self.obstacles[i].zero_out_distance))*((cost_iter_arr-self.obstacles[i].zero_out_distance)**2);
+			curr_obstacle_class = self.obstacles[i].semantic_class
+			curr_semantic_class_weight = self.semantic_obstacle_weights[curr_obstacle_class]
+			curr_obstacle_class *= curr_semantic_class_weight
+			obs_cost += cost_iter_arr
+		self.cost_function = obs_cost
 
-for i in range(len(obstacles)):
-	t = np.zeros_like(gridworld)	
-	t[obstacles[i][0],obstacles[i][1]] = 1 # point obstacles
-	# this is matlab's bwdist in python(1-t)
-	# http://stackoverflow.com/questions/5260232/matlab-octave-bwdist-in-python-or-c
-	t_cost = ndimage.morphology.distance_transform_edt(1-t) 
-	t_cost[t_cost>epsilon[i]]= epsilon[i];
-	t_cost = (1.0/(2*epsilon[i]))*((t_cost-epsilon[i])**2);
-	obs_cost += t_cost
+	def plot_cost_function_2d(self):
+		cost_2d_plot = plt.imshow(self.cost_function)
+		ax = plt.subplot(111)
+		ax.imshow(self.cost_function, extent=[0,1,0,1], aspect='auto') # this has been transposed in the math hw
+		plt.show()
 
-cost_2d_plot = plt.imshow(obs_cost)
-ax = plt.subplot(111)
-ax.imshow(obs_cost, extent=[0,1,0,1], aspect='auto') # this has been transposed in the math hw
-plt.show()
-
-# surface plot
-cost_3d_plot = plt.figure()
-ax = cost_3d_plot.add_subplot(111, projection='3d')
-x = np.arange(0, length_x, 1.0)
-y = np.arange(0, length_y, 1.0)
-X, Y = np.meshgrid(x, y)
-print X.shape, Y.shape, obs_cost.shape
-ax.plot_surface(X, Y, obs_cost,cmap = cm.coolwarm)
-plt.show()
+	def plot_cost_function_3d(self):
+		cost_3d_plot = plt.figure()
+		ax = cost_3d_plot.add_subplot(111, projection='3d')
+		x = np.arange(0, self.grid_dims['x'], 1.0)
+		y = np.arange(0, self.grid_dims['y'], 1.0)
+		X,Y = np.meshgrid(x, y)
+		# print X.shape, Y.shape, self.cost_function.shape
+		ax.plot_surface(X, Y, self.cost_function, cmap = cm.coolwarm)
+		plt.show()
