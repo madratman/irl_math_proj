@@ -1,24 +1,19 @@
 import numpy as np
+import heapq
 
-def children(point, grid_dims, connectivity="four_conn"):
-	# point is list [x,y], grid_dims is dict {x:n_1, y:n_2}
-	# todo maybe it's better to have a grid data struct itself instead of passing dims
-	children_list = []
-	if connectivity=="four_conn":
-		indices = [[1,0],[0,1],[-1,0],[0,-1]]
-		for index in indices:
-			curr_child = [point[0]+index[0], point[1]+index[1]]
-			if 0<=curr_child[0]<grid_dims.x and 0<=curr_child[1]<grid_dims.y:
-				children_list.append(curr_child)
-
-	if connectivity=="eight_conn":
-		indices = [[1,0],[0,1],[-1,0],[0,-1], [1,1],[-1,1],[1,-1],[-1,-1]]
-		for index in indices:
-			curr_child = [point[0]+index[0], point[1]+index[1]]
-			if 0<=curr_child[0]<grid_dims.x and 0<=curr_child[1]<grid_dims.y:
-				children_list.append(curr_child)
-
-	return children_list
+# adapted from http://www.redblobgames.com/pathfinding/a-star/implementation.html
+class PriorityQueue:
+    def __init__(self):
+        self.elements = []
+    
+    def empty(self):
+        return len(self.elements) == 0
+    
+    def put(self, item, priority):
+        heapq.heappush(self.elements, (priority, item))
+    
+    def get(self):
+        return heapq.heappop(self.elements)[1]
 
 def heuristic_func(curr_point, target_point, type="manhattan"):
 	# curr_point and target point are lists [x1,y1], [x2,y2]
@@ -27,5 +22,27 @@ def heuristic_func(curr_point, target_point, type="manhattan"):
 	elif type=="euclidean":
 		return numpy.linalg.norm(np.array(curr_point), np.array(target_point))
 
-def a_star(start, goal, grid_dims):
-	
+def a_star(grid, start_point, goal_point):
+	# grid is obj of class Gridworld. start_point and goal_point are lists [x,y]
+	frontier = PriorityQueue()
+	frontier.put(start_point,0)
+	came_from = {}
+	cost_so_far = {}
+	came_from[tuple(start_point)] = None
+	cost_so_far[tuple(start_point)] = 0
+
+	while not frontier.empty():
+		curr_point = frontier.get()
+
+		if curr_point==goal_point:
+			break
+
+		for next_point in grid.get_children(curr_point):
+			new_cost = cost_so_far[tuple(curr_point)] + grid.get_cost_at_point(next_point)
+			if tuple(next_point) not in cost_so_far or new_cost < cost_so_far[tuple(next_point)]:
+				cost_so_far[tuple(next_point)] = new_cost
+				priority =  new_cost + heuristic_func(next_point, goal_point)
+				frontier.put(next_point, priority)
+				came_from[tuple(next_point)] = curr_point
+
+	return came_from, cost_so_far

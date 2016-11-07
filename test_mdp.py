@@ -1,4 +1,5 @@
 from mdp import Obstacle, Gridworld
+import mdp_solvers
 
 grid = Gridworld()
 
@@ -13,5 +14,7 @@ semantic_obstacle_weights.update({3:4})
 
 grid.add_semantic_obstacle_weights(semantic_obstacle_weights)
 grid.make_simple_cost_function()
-grid.plot_cost_function_2d()
-grid.plot_cost_function_3d()
+# grid.plot_cost_function_2d()
+# grid.plot_cost_function_3d()
+
+came_from, cost_so_far = mdp_solvers.a_star(grid, [1, 4], [20, 58])

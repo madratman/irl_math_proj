@@ -44,6 +44,10 @@ class Gridworld:
 			obs_cost += cost_iter_arr
 		self.cost_function = obs_cost
 
+	def get_cost_at_point(self, point):
+		# we'll use this function in MDP solvers like A-star
+		return self.cost_function[point[0], point[1]]
+
 	def plot_cost_function_2d(self):
 		cost_2d_plot = plt.imshow(self.cost_function)
 		ax = plt.subplot(111)
@@ -59,3 +63,25 @@ class Gridworld:
 		# print X.shape, Y.shape, self.cost_function.shape
 		ax.plot_surface(X, Y, self.cost_function, cmap = cm.coolwarm)
 		plt.show()
+
+	def get_children(self, point):
+		# point is list [x,y]
+		children_list = []
+		if self.connectivity=="four_conn":
+			indices = [[1,0],[0,1],[-1,0],[0,-1]]
+			for index in indices:
+				curr_child = [point[0]+index[0], point[1]+index[1]]
+				if 0<=curr_child[0]<self.grid_dims['x'] and 0<=curr_child[1]<self.grid_dims['y']:
+					children_list.append(curr_child)
+		if self.connectivity=="eight_conn":
+			indices = [[1,0],[0,1],[-1,0],[0,-1], [1,1],[-1,1],[1,-1],[-1,-1]]
+			for index in indices:
+				curr_child = [point[0]+index[0], point[1]+index[1]]
+				if 0<=curr_child[0]<self.grid_dims['x'] and 0<=curr_child[1]<self.grid_dims['y']:
+					children_list.append(curr_child)
+		return children_list
+
+	# def get_feat_vect_at_pt(self, state_location):
+
+	# def get_feat_expect_traj(self, trajectory):
+
