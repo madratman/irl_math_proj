@@ -28,8 +28,8 @@ def a_star(grid, start_point, goal_point):
 	frontier.put(start_point,0)
 	came_from = {}
 	cost_so_far = {}
-	came_from[tuple(start_point)] = None
-	cost_so_far[tuple(start_point)] = 0
+	came_from[start_point] = None
+	cost_so_far[start_point] = 0
 
 	while not frontier.empty():
 		curr_point = frontier.get()
@@ -38,11 +38,12 @@ def a_star(grid, start_point, goal_point):
 			break
 
 		for next_point in grid.get_children(curr_point):
-			new_cost = cost_so_far[tuple(curr_point)] + grid.get_cost_at_point(next_point)
-			if tuple(next_point) not in cost_so_far or new_cost < cost_so_far[tuple(next_point)]:
-				cost_so_far[tuple(next_point)] = new_cost
+			new_cost = cost_so_far[curr_point] + grid.get_cost_at_point(next_point)
+			if next_point not in cost_so_far or new_cost < cost_so_far[next_point]:
+				cost_so_far[next_point] = new_cost
 				priority =  new_cost + heuristic_func(next_point, goal_point)
 				frontier.put(next_point, priority)
-				came_from[tuple(next_point)] = curr_point
+				came_from[next_point] = curr_point
 
 	return came_from, cost_so_far
+

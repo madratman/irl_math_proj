@@ -70,13 +70,13 @@ class Gridworld:
 		if self.connectivity=="four_conn":
 			indices = [[1,0],[0,1],[-1,0],[0,-1]]
 			for index in indices:
-				curr_child = [point[0]+index[0], point[1]+index[1]]
+				curr_child = (point[0]+index[0], point[1]+index[1])
 				if 0<=curr_child[0]<self.grid_dims['x'] and 0<=curr_child[1]<self.grid_dims['y']:
 					children_list.append(curr_child)
 		if self.connectivity=="eight_conn":
 			indices = [[1,0],[0,1],[-1,0],[0,-1], [1,1],[-1,1],[1,-1],[-1,-1]]
 			for index in indices:
-				curr_child = [point[0]+index[0], point[1]+index[1]]
+				curr_child = (point[0]+index[0], point[1]+index[1])
 				if 0<=curr_child[0]<self.grid_dims['x'] and 0<=curr_child[1]<self.grid_dims['y']:
 					children_list.append(curr_child)
 		return children_list
