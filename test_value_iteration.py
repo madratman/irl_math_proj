@@ -1,5 +1,6 @@
 from mdp import Obstacle, Gridworld
 import mdp_solvers
+import matplotlib.pyplot as plt
 
 grid = Gridworld()
 
@@ -14,5 +15,9 @@ semantic_obstacle_weights.update({3:4})
 
 grid.add_semantic_obstacle_weights(semantic_obstacle_weights)
 grid.make_simple_cost_function()
-grid.plot_cost_function_2d()
-grid.plot_cost_function_3d()
+
+final_value = mdp_solvers.value_iteration(grid)
+final_value_plot = plt.imshow(final_value)
+ax = plt.subplot(111)
+ax.imshow(final_value, extent=[0,1,0,1], aspect='auto') # this has been transposed in the math hw
+plt.show()

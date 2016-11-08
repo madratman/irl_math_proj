@@ -41,9 +41,36 @@ def a_star(grid, start_point, goal_point):
 			new_cost = cost_so_far[curr_point] + grid.get_cost_at_point(next_point)
 			if next_point not in cost_so_far or new_cost < cost_so_far[next_point]:
 				cost_so_far[next_point] = new_cost
-				priority =  new_cost + heuristic_func(next_point, goal_point)
+				priority = new_cost + heuristic_func(next_point, goal_point)
 				frontier.put(next_point, priority)
 				came_from[next_point] = curr_point
 
 	return came_from, cost_so_far
 
+def reconstruct_path(came_from, start, goal):
+    current = goal
+    path = [current]
+    while current != start:
+        current = came_from[current]
+        path.append(current)
+    path.reverse()
+    return path
+
+def value_iteration(grid, thresh=0.01, max_iter=100):
+	value_func = np.zeros([grid.grid_dims['y'], grid.grid_dims['x']]) #1d array
+	reward = grid.cost_function #2d array
+	ctr=0
+	delta=float("inf")
+	while delta>thresh and ctr<max_iter:
+		delta = 0
+		for state_idx in range(value_func.size):
+			# convert to 2D indices from 1D
+			state_idx_2d = np.unravel_index(state_idx, (grid.grid_dims['y'], grid.grid_dims['x']))
+			old_value = value_func[state_idx_2d]
+			successor_states = grid.get_children(state_idx_2d)
+			# bellman backup 
+			value_func[state_idx_2d] = max(map(lambda x:reward[x]+(grid.discount*value_func[x]), successor_states))
+			delta = max(delta, abs(old_value - value_func[state_idx_2d]))
+		ctr+=1
+		print ctr
+	return value_func

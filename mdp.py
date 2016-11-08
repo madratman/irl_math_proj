@@ -13,12 +13,13 @@ class Obstacle:
 		self.zero_out_distance = zero_out_distance
 
 class Gridworld:
-	def __init__(self, grid_dims=[100,100], connectivity="four_conn"):		
+	def __init__(self, grid_dims=[100,100], connectivity="four_conn", discount=0.9):		
 		self.grid_dims = {'x':grid_dims[0], 'y':grid_dims[1]}
 		self.connectivity = connectivity
 		self.obstacles = []
 		self.semantic_obstacle_weights = {} #todo add default or make param?
 		self.cost_function = []
+		self.discount = discount
 
 	def add_obstacle(self, obstacle):
 		# pass objects of Obstacle class
