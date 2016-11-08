@@ -56,9 +56,10 @@ def reconstruct_path(came_from, start, goal):
     path.reverse()
     return path
 
+# todo add as member of mdp class?
 def value_iteration(grid, thresh=0.01, max_iter=100):
 	value_func = np.zeros([grid.grid_dims['y'], grid.grid_dims['x']]) #1d array
-	reward = grid.cost_function #2d array
+	reward = grid.reward #2d array
 	ctr=0
 	delta=float("inf")
 	while delta>thresh and ctr<max_iter:
@@ -72,5 +73,28 @@ def value_iteration(grid, thresh=0.01, max_iter=100):
 			value_func[state_idx_2d] = max(map(lambda x:reward[x]+(grid.discount*value_func[x]), successor_states))
 			delta = max(delta, abs(old_value - value_func[state_idx_2d]))
 		ctr+=1
-		print ctr
+		if not ctr%10:
+			print "ctr=", ctr, "delta=",delta
 	return value_func
+
+def gen_fake_expert_traj(grid, value_func, no_of_fake_traj, traj_length_limits=(0,100)):
+	from random import randint as randi
+	all_traj = []
+
+	for traj_idx in range(no_of_fake_traj):
+		curr_point = (randi(0, grid.grid_dims['y']), randi(0, grid.grid_dims['x']))
+		traj_length = randi(0, traj_length_limits[1])
+		curr_traj = []
+
+		for pt_idx in range(traj_length):
+			curr_traj.append(curr_point)
+			successor_states = grid.get_children(curr_point)
+			successor_values = map(lambda x:grid.get_reward_at_point(x), successor_states)
+			_, min_val_idx = min((_, min_val_idx) for (min_val_idx, _) in enumerate(successor_values))
+			curr_point = successor_states[min_val_idx]
+
+		all_traj.append(curr_traj)
+
+	return all_traj
+
+# def plot_traj(list_of_traj):

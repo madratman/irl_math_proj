@@ -13,13 +13,15 @@ class Obstacle:
 		self.zero_out_distance = zero_out_distance
 
 class Gridworld:
-	def __init__(self, grid_dims=[100,100], connectivity="four_conn", discount=0.9):		
+	def __init__(self, grid_dims=[100,100], connectivity="four_conn", discount=0.98):		
 		self.grid_dims = {'x':grid_dims[0], 'y':grid_dims[1]}
 		self.connectivity = connectivity
 		self.obstacles = []
 		self.semantic_obstacle_weights = {} #todo add default or make param?
 		self.cost_function = []
+		self.reward = []
 		self.discount = discount
+		self.goals = []
 
 	def add_obstacle(self, obstacle):
 		# pass objects of Obstacle class
@@ -44,16 +46,26 @@ class Gridworld:
 			curr_obstacle_class *= curr_semantic_class_weight
 			obs_cost += cost_iter_arr
 		self.cost_function = obs_cost
+		self.reward = -obs_cost
+		for goal in self.goals:
+			self.reward[goal]=5
 
 	def get_cost_at_point(self, point):
 		# we'll use this function in MDP solvers like A-star
-		return self.cost_function[point[0], point[1]]
+		return self.cost_function[point]
 
-	def plot_cost_function_2d(self):
+	def get_reward_at_point(self, point):
+		return self.reward[point]
+
+	def plot_cost_function_2d(self, show_plot=0):
 		cost_2d_plot = plt.imshow(self.cost_function)
 		ax = plt.subplot(111)
 		ax.imshow(self.cost_function, extent=[0,1,0,1], aspect='auto') # this has been transposed in the math hw
-		plt.show()
+		if show_plot:
+			plt.show()
+		else:
+			plt.axis('off')
+			plt.savefig('plots/costmap.png', bbox_inches='tight')
 
 	def plot_cost_function_3d(self):
 		cost_3d_plot = plt.figure()
@@ -81,6 +93,9 @@ class Gridworld:
 				if 0<=curr_child[0]<self.grid_dims['x'] and 0<=curr_child[1]<self.grid_dims['y']:
 					children_list.append(curr_child)
 		return children_list
+
+	def add_goal(self, location):
+		self.goals.append(location)
 
 	# def get_feat_vect_at_pt(self, state_location):
 
