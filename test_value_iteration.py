@@ -1,12 +1,18 @@
 from mdp import Obstacle, Gridworld
 import mdp_solvers
 import matplotlib.pyplot as plt
+import numpy as np
+import pickle as pkl
+from random import randint as randi
 
 grid = Gridworld()
+dim_y = grid.grid_dims['y']
+dim_x = grid.grid_dims['x']
+no_of_obstacles = 35
+for i in range(no_of_obstacles):
+	grid.add_obstacle(Obstacle(location=(randi(0,dim_y-1),randi(0,dim_x-1)),
+						 semantic_class=1, zero_out_distance=25))
 
-grid.add_obstacle(Obstacle(location=(20,30), semantic_class=1, zero_out_distance=25))
-grid.add_obstacle(Obstacle(location=(60,40), semantic_class=2, zero_out_distance=20))
-grid.add_obstacle(Obstacle(location=(70,85), semantic_class=1, zero_out_distance=30))
 
 semantic_obstacle_weights = {}
 semantic_obstacle_weights.update({1:5})
@@ -16,6 +22,7 @@ semantic_obstacle_weights.update({2:2})
 
 grid.add_semantic_obstacle_weights(semantic_obstacle_weights)
 grid.make_simple_cost_function()
+grid.plot_cost_function_2d()
 
 opt_val_func = mdp_solvers.value_iteration(grid)
 final_value_plot = plt.imshow(opt_val_func)
@@ -24,7 +31,10 @@ ax.imshow(opt_val_func, extent=[0,1,0,1], aspect='auto') # this has been transpo
 # plt.show()
 plt.axis('off')
 plt.savefig('plots/value_iteration.png', bbox_inches='tight')
+np.save('data/opt_val_func.npy', opt_val_func)
 
-all_traj = mdp_solvers.gen_fake_expert_traj(grid, opt_val_func, no_of_fake_traj=10, traj_length_limits=(10,40))
-for each_traj in all_traj:
-	print each_traj
+file = open("data/grid.pkl","wb")
+pkl.dump(grid,file)
+file.close()
+
+open
