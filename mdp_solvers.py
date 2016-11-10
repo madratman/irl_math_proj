@@ -58,7 +58,7 @@ def reconstruct_path(came_from, start, goal):
 
 # todo add as member of mdp class?
 def value_iteration(grid, thresh=0.01, max_iter=100):
-	value_func = np.zeros([grid.grid_dims['y'], grid.grid_dims['x']]) #1d array
+	value_func = np.zeros([grid.grid_dims['rows'], grid.grid_dims['cols']]) #1d array
 	reward = grid.reward #2d array
 	ctr=0
 	delta=float("inf")
@@ -66,25 +66,27 @@ def value_iteration(grid, thresh=0.01, max_iter=100):
 		delta = 0
 		for state_idx in range(value_func.size):
 			# convert to 2D indices from 1D
-			state_idx_2d = np.unravel_index(state_idx, (grid.grid_dims['y'], grid.grid_dims['x']))
+			state_idx_2d = np.unravel_index(state_idx, (grid.grid_dims['rows'], grid.grid_dims['cols']))
 			old_value = value_func[state_idx_2d]
 			successor_states = grid.get_children(state_idx_2d)
 			# bellman backup 
-			value_func[state_idx_2d] = max(map(lambda x:reward[x]+(grid.discount*value_func[x]), successor_states))
+			#todo
+			# value_func[state_idx_2d] = max(map(lambda x:reward[x]+(grid.discount*value_func[x]), successor_states))
+			value_func[state_idx_2d] = reward[state_idx_2d]+max(map(lambda x:(grid.discount*value_func[x]), successor_states))
 			delta = max(delta, abs(old_value - value_func[state_idx_2d]))
 		ctr+=1
 		if not ctr%10:
 			print "ctr=", ctr, "delta=",delta
 	return value_func
 
-def gen_fake_expert_traj(grid, value_func, no_of_fake_traj, traj_length_limits=(100,100)):
+def gen_fake_expert_traj(grid, value_func, no_of_fake_traj, add_state_itself=0, traj_length_limits=(100,100)):
 	from random import randint as randi
 	import operator
 	all_traj = []
 
 	for traj_idx in range(no_of_fake_traj):
 		# starting point of each trajectory is random
-		curr_point = (randi(0, grid.grid_dims['y']), randi(0, grid.grid_dims['x']))
+		curr_point = (randi(0, grid.grid_dims['rows']-1), randi(0, grid.grid_dims['cols']-1))
 		# length of traj is random, between the limits specified in the argument traj_length_limits
 		traj_length = randi(traj_length_limits[0], traj_length_limits[1])
 		curr_traj = []
@@ -95,11 +97,19 @@ def gen_fake_expert_traj(grid, value_func, no_of_fake_traj, traj_length_limits=(
 			curr_traj.append(curr_point)
 			# get the neighbours of curr_point
 			successor_states = grid.get_children(curr_point)
+			# add curr point to stop
+			if add_state_itself:
+				successor_states.append(curr_point)
 			# get value for each neighbouring states
 			successor_values = map(lambda x:grid.get_reward_at_point(x), successor_states)
 			# find max value. not we need the index of the neifghbouring states 
 			max_index, max_value = max(enumerate(successor_values), key=operator.itemgetter(1))
+			# print "successor_values", successor_values
+			# print "max_index", max_index, "max_value", max_value, "\n"
 			curr_point = successor_states[max_index]
+			successor_states, successor_values, max_value, max_index = ([] for i in range(4))
+
+			# print curr_point, max_value
 
 		all_traj.append(curr_traj)
 

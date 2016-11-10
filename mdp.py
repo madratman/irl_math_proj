@@ -13,8 +13,8 @@ class Obstacle:
 		self.zero_out_distance = zero_out_distance
 
 class Gridworld:
-	def __init__(self, grid_dims=[100,100], connectivity="four_conn", discount=0.98):		
-		self.grid_dims = {'x':grid_dims[0], 'y':grid_dims[1]}
+	def __init__(self, grid_dims=(100,100), connectivity="four_conn", discount=0.98):		
+		self.grid_dims = {'rows':grid_dims[0], 'cols':grid_dims[1]}
 		self.connectivity = connectivity
 		self.obstacles = []
 		self.semantic_obstacle_weights = {} #todo add default or make param?
@@ -32,7 +32,7 @@ class Gridworld:
 		self.semantic_obstacle_weights = weight_dict
 
 	def make_simple_cost_function(self):
-		cost_iter_arr = np.zeros([self.grid_dims['y'], self.grid_dims['x']])
+		cost_iter_arr = np.zeros([self.grid_dims['rows'], self.grid_dims['cols']])
 		obs_cost = np.zeros_like(cost_iter_arr)
 		for i in range(len(self.obstacles)):
 			cost_iter_arr[self.obstacles[i].location[0], self.obstacles[i].location[1]] = 1 # point obstacles
@@ -70,8 +70,9 @@ class Gridworld:
 	def plot_cost_function_3d(self):
 		cost_3d_plot = plt.figure()
 		ax = cost_3d_plot.add_subplot(111, projection='3d')
-		x = np.arange(0, self.grid_dims['x'], 1.0)
-		y = np.arange(0, self.grid_dims['y'], 1.0)
+		nx, ny = (self.grid_dims['cols'], self.grid_dims['rows'])
+		x = np.linspace(0, 1.0, nx)
+		y = np.linspace(0, 1.0, ny)
 		X,Y = np.meshgrid(x, y)
 		# print X.shape, Y.shape, self.cost_function.shape
 		ax.plot_surface(X, Y, self.cost_function, cmap = cm.coolwarm)
@@ -84,13 +85,13 @@ class Gridworld:
 			indices = [[1,0],[0,1],[-1,0],[0,-1]]
 			for index in indices:
 				curr_child = (point[0]+index[0], point[1]+index[1])
-				if 0<=curr_child[0]<self.grid_dims['x'] and 0<=curr_child[1]<self.grid_dims['y']:
+				if 0<=curr_child[0]<self.grid_dims['rows'] and 0<=curr_child[1]<self.grid_dims['cols']:
 					children_list.append(curr_child)
 		if self.connectivity=="eight_conn":
 			indices = [[1,0],[0,1],[-1,0],[0,-1], [1,1],[-1,1],[1,-1],[-1,-1]]
 			for index in indices:
 				curr_child = (point[0]+index[0], point[1]+index[1])
-				if 0<=curr_child[0]<self.grid_dims['x'] and 0<=curr_child[1]<self.grid_dims['y']:
+				if 0<=curr_child[0]<self.grid_dims['rows'] and 0<=curr_child[1]<self.grid_dims['cols']:
 					children_list.append(curr_child)
 		return children_list
 
