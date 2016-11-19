@@ -10,11 +10,11 @@ grid = Gridworld(grid_dims=(100,100), connectivity="eight_conn", discount=0.98)
 n_rows, n_cols = grid.grid_dims['rows'], grid.grid_dims['cols']
 
 # specify an obstacle dict in the form {semantic_class_index, number_of_obstacles to add of that class}
-obstacles_dict = {1:10, 2:10, 3:10}
+obstacles_dict = {1:5, 2:10, 3:15}
 # specify the zero_out_distanceeo	s in the form {semantic_class_index, zero_out_distance of that class}
-zero_out_dist_dict = {1:10, 2:15, 3:20}
+zero_out_dist_dict = {1:25, 2:15, 3:10}
 # declare how much to weigh each obstacle of each class in the form {semantic_class_index, weight of obstacke of that class}
-semantic_obstacle_weights= {1:20, 2:5, 3:10}
+semantic_obstacle_weights= {1:25, 2:17.5, 3:15}
 
 # add this info to the grid object
 grid.add_semantic_obstacle_weights(semantic_obstacle_weights)
@@ -31,9 +31,9 @@ for semantic_class_index, no_of_obstacles in obstacles_dict.iteritems():
 # make cost function and save it to plots/cost_function.png.
 grid.make_simple_cost_function()
 grid.plot_cost_function_2d(show_plot=0)
-
+grid.plot_obstacles()
 # solve the grid mdp with obstacles with value iteration
-opt_val_func = mdp_solvers.value_iteration(grid, max_iter=400)
+opt_val_func = mdp_solvers.value_iteration(grid,thresh=0.00001, max_iter=400)
 
 # plot and save the final values 
 final_value_plot = plt.imshow(opt_val_func)
@@ -50,3 +50,4 @@ np.save('data/opt_val_func.npy', opt_val_func)
 file = open("data/grid.pkl","wb")
 pkl.dump(grid,file)
 file.close()
+

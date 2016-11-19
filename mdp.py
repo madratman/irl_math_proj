@@ -57,7 +57,7 @@ class Gridworld:
 	def get_reward_at_point(self, point):
 		return self.reward[point]
 
-	def plot_cost_function_2d(self, show_plot=0):
+	def plot_cost_function_2d(self, show_plot=0, **kwargs):
 		cost_2d_plot = plt.imshow(self.cost_function)
 		ax = plt.subplot(111)
 		ax.imshow(self.cost_function, extent=[0,1,0,1], aspect='auto') # this has been transposed in the math hw
@@ -65,7 +65,10 @@ class Gridworld:
 			plt.show()
 		else:
 			plt.axis('off')
-			plt.savefig('plots/costmap.png', bbox_inches='tight')
+			if ('filename' in kwargs):
+				plt.savefig(kwargs['filename'], bbox_inches='tight')
+			else:
+				plt.savefig('plots/costmap.png', bbox_inches='tight')
 
 	def plot_cost_function_3d(self):
 		cost_3d_plot = plt.figure()
@@ -77,6 +80,24 @@ class Gridworld:
 		# print X.shape, Y.shape, self.cost_function.shape
 		ax.plot_surface(X, Y, self.cost_function, cmap = cm.coolwarm)
 		plt.show()
+
+	def plot_obstacles(self, **kwargs):
+		# fig = plt.figure()
+		# ax = fig.add_subplot(111)
+		cost_2d_plot = plt.imshow(self.cost_function)
+		ax = plt.subplot(111)
+		ax.imshow(self.cost_function, extent=[0,1,0,1], aspect='auto') # this has been transposed in the math hw
+		class_color_mapping = {1:"red", 2:"orange", 3:"green"}
+		for obstacle in self.obstacles:
+			ax.plot(obstacle.location[1], obstacle.location[0], marker='*', markersize=20,
+				color=class_color_mapping[obstacle.semantic_class])
+		# plt.axis('off')
+		# ax = plt.gca()
+		ax.invert_yaxis()
+		if ('filename' in kwargs):
+			plt.savefig(kwargs['filename'], bbox_inches='tight')
+		else:
+			plt.savefig('plots/obstacles.png', bbox_inches="tight")
 
 	def get_children(self, point):
 		# point is list [x,y]
@@ -98,7 +119,25 @@ class Gridworld:
 	def add_goal(self, location):
 		self.goals.append(location)
 
-	# def get_feat_vect_at_pt(self, state_location):
+	def get_feat_vect_at_state(self, state_location):
+		# for each obstacle in the grid object, find the euclidean distance from state_location
+		obs_dist_list = [np.linalg.norm(np.asarray(state_location)-np.asarray(each_obs.location)) for each_obs in self.obstacles]
+		# find the class of each obstacle
+		obs_class_list = [each_obs.semantic_class for each_obs in self.obstacles]
+		# sort the list which contains the distances
+		sorted_obs_dist = sorted(obs_dist_list)
+		sorted_classes = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
+		
+		# find closest obstacles' indices of each class
+		# http://codereview.stackexchange.com/questions/24126/retrieving-the-first-occurrence-of-every-unique-value-from-a-csv-column
+	 	temp_dict = {obs_class:idx for idx,obs_class in reversed(list(enumerate(sorted_classes)))}
+	 	indices = temp_dict.values() 
+	 	feature_vector = [sorted_obs_dist[index] for index in indices]
+	 	return feature_vector
 
-	# def get_feat_expect_traj(self, trajectory):
-
+	def get_feat_vect_traj(self, trajectory):
+		all_feats = []
+		for idx in range(len(trajectory)):
+			curr_feature = self.get_feat_vect_at_state(trajectory[idx])
+			all_feats.append(curr_feature)
+		return all_feats
