@@ -4,12 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle as pkl
 from random import randint as randi
-
-import mdp_solvers
-import numpy as np
-import pickle as pkl
-import matplotlib.pyplot as plt
-
+import os
 
 def do_value_iteration(data_dir, obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights):
 	# create object of grid_dims=(no_of_rows, no_of_cols), "four_conn" or "eight_conn", discount
@@ -77,6 +72,8 @@ def gen_traj_from_val_func(data_dir, no_of_fake_traj=100, traj_length_limits=(10
 		figure = plt.plot([point[1] for point in curr_traj], [point[0] for point in curr_traj])
 		plt.setp(figure, 'linewidth', 2.0)
 		curr_traj_feats = grid.get_feat_vect_traj(curr_traj)
+		if not os.path.exists(data_dir+"/features"):
+			os.makedirs(data_dir+"/features")
 		file = open(data_dir+"/features/traj_"+str(ctr)+'.txt', 'w')
 		for idx, state_feat in enumerate(curr_traj_feats):
 			file.write(str(curr_traj[idx][0])+" "+str(curr_traj[idx][1])+" ")
@@ -86,7 +83,8 @@ def gen_traj_from_val_func(data_dir, no_of_fake_traj=100, traj_length_limits=(10
 			print ctr
 		ctr+=1
 
-	plt.show()
+	plt.savefig(data_dir+'/fake_experts.png', bbox_inches='tight')
+	plt.close()
 
 if __name__ == "__main__":
 	# specify an obstacle dict in the form {semantic_class_index, number_of_obstacles to add of that class}
@@ -96,6 +94,9 @@ if __name__ == "__main__":
 	# declare how much to weigh each obstacle of each class in the form {semantic_class_index, weight of obstacke of that class}
 	semantic_obstacle_weights= {1:25, 2:17.5, 3:15}
 
-	for idx in range(3):
-		do_value_iteration("data/"+str(idx),obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
-		gen_traj_from_val_func("data/"+str(idx))
+	for idx in range(10):
+		curr_data_dir = "data/"+str(idx)
+		if not os.path.exists(curr_data_dir):
+			os.makedirs(curr_data_dir)
+		do_value_iteration(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
+		gen_traj_from_val_func(curr_data_dir)
