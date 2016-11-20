@@ -80,6 +80,7 @@ def gen_traj_from_val_func(data_dir, no_of_fake_traj=100, traj_length_limits=(10
 			file.write(str(curr_traj[idx][0])+" "+str(curr_traj[idx][1])+" ")
 			file.write(' '.join(str(each_feat) for each_feat in state_feat))
 			file.write("\n")
+		file.close()
 		if ctr%5==0:
 			print ctr
 		ctr+=1
@@ -132,6 +133,7 @@ def gen_astar(data_dir, no_of_fake_traj=1):
 			file.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
 			file.write(' '.join(str(each_feat) for each_feat in state_feat))
 			file.write("\n")
+		file.close()
 
 	plt.savefig(data_dir+'/a_star_fake_experts.png', bbox_inches='tight')
 	plt.close()
@@ -149,6 +151,6 @@ if __name__ == "__main__":
 		if not os.path.exists(curr_data_dir):
 			os.makedirs(curr_data_dir)
 		# do_value_iteration(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
-		# gen_traj_from_val_func(curr_data_dir)
-		gen_astar(curr_data_dir, no_of_fake_traj=4)
+		gen_traj_from_val_func(curr_data_dir, no_of_fake_traj=100, traj_length_limits=(50,200))
+		# gen_astar(curr_data_dir, no_of_fake_traj=4)
 		print idx

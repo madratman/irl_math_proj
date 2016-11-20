@@ -40,14 +40,14 @@ def dump_reward_to_file(data_dir):
 		# f.write(np.array2string(grid.reward, separator=', '))
 
 if __name__ == "__main__":
-	# for idx in range(10):
-	# 	print idx
-	# 	data_dir = "data/"+str(idx)
-	# 	get_all_feats(data_dir)
+	for idx in range(10):
+		print idx
+		data_dir = "data/"+str(idx)
+		get_all_feats(data_dir)
 
-	# for idx in range(10):
-	# 	save_only_obstacle_locs("data/"+str(idx))
-	# 	print idx
+	for idx in range(10):
+		save_only_obstacle_locs("data/"+str(idx))
+		print idx
 
 	for idx in range(10):
 		print idx
