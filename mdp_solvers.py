@@ -15,6 +15,7 @@ class PriorityQueue:
     def get(self):
         return heapq.heappop(self.elements)[1]
 
+
 def heuristic_func(curr_point, target_point, type="manhattan"):
 	# curr_point and target point are lists [x1,y1], [x2,y2]
 	if type=="manhattan":
@@ -46,6 +47,67 @@ def a_star(grid, start_point, goal_point):
 				came_from[next_point] = curr_point
 
 	return came_from, cost_so_far
+
+class Node:
+    def __init__(self, point):
+        # self.value = value
+        self.point = point
+        self.parent = None
+        self.H = 0
+        self.G = 0
+
+def a_star_fast(grid, start_point, goal_point):
+	# http://stackoverflow.com/questions/4159331/python-speed-up-an-a-star-pathfinding-algorithm
+	# https://gist.github.com/jamiees2/5531924s
+	open_set = set()
+	closed_set = set()
+	open_heap = []
+
+	def retrace_path(c):
+		path = [c.point]
+		while c.parent is not None:
+			c = c.parent
+			path.append(c.point)
+		path.reverse
+		return path
+
+	curr_point = start_point
+	open_set.add(curr_point)
+	open_heap.append((0,curr_point))
+	ctr = 0
+	while open_set:
+		ctr += 1
+		if not ctr%5000:
+			print ctr
+		# by popping heap, we're finding the element in the openset with lowest G+H
+		curr_point = heapq.heappop(open_heap)[1]
+		# print curr_point.point
+		if curr_point == goal_point:
+			return retrace_path(curr_point)	
+		
+		# remove from open set and add to closed
+		open_set.remove(curr_point)
+		closed_set.add(curr_point)
+
+		for child in grid.get_children(curr_point):
+			# node = Node(child)
+
+			# if already in closed set, we skip it
+			if curr_point in closed_set:
+				continue
+
+			# else if it's in open, check if we beat the G score 	
+			if curr_point in open_set:
+				new_g = curr_point.G + grid.get_cost_at_point(curr_point)
+				if node.G > new_g:
+					node.G = new_g
+					node.parent = curr_point
+			else:
+				node.G = curr_point.G + grid.get_cost_at_point(node.point)
+				node.H = heuristic_func(node.point, goal_point.point)
+				node.parent = curr_point
+				open_set.add(node)
+				heapq.heappush(open_heap, (node.G+node.H, node))
 
 def reconstruct_path(came_from, start, goal):
     current = goal

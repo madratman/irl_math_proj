@@ -84,20 +84,22 @@ class Gridworld:
 	def plot_obstacles(self, **kwargs):
 		# fig = plt.figure()
 		# ax = fig.add_subplot(111)
-		cost_2d_plot = plt.imshow(self.cost_function)
+		# cost_2d_plot = plt.imshow(self.cost_function)
 		ax = plt.subplot(111)
-		ax.imshow(self.cost_function, extent=[0,1,0,1], aspect='auto') # this has been transposed in the math hw
+		# ax.imshow(self.cost_function, extent=[0,1,0,1], aspect='auto') # this has been transposed in the math hw
 		class_color_mapping = {1:"red", 2:"orange", 3:"green"}
+		# plt.xticks(np.arange(0, self.grid_dims['cols'], self.grid_dims['cols']/5))
+		# plt.yticks(np.arange(0, self.grid_dims['rows'], self.grid_dims['rows']/5))
 		for obstacle in self.obstacles:
-			ax.plot(obstacle.location[1], obstacle.location[0], marker='*', markersize=20,
-				color=class_color_mapping[obstacle.semantic_class])
-		# plt.axis('off')
-		# ax = plt.gca()
+			plt.plot(obstacle.location[1], obstacle.location[0], marker='*', markersize=20, color=class_color_mapping[obstacle.semantic_class])
+		plt.axis('off')
+		ax = plt.gca()
 		ax.invert_yaxis()
 		if ('filename' in kwargs):
 			plt.savefig(kwargs['filename'], bbox_inches='tight')
 		else:
 			plt.savefig('plots/obstacles.png', bbox_inches="tight")
+		plt.close()
 
 	def get_children(self, point):
 		# point is list [x,y]

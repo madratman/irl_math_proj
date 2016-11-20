@@ -65,6 +65,7 @@ def gen_traj_from_val_func(data_dir, no_of_fake_traj=100, traj_length_limits=(10
 							no_of_fake_traj=no_of_fake_traj, traj_length_limits=traj_length_limits, add_state_itself=1)
 
 	ctr=0
+
 	for curr_traj in all_traj:
 		# plot starting point as a star
 		ax.plot(curr_traj[0][1], curr_traj[0][0], marker='*', markersize=10, color="white")
@@ -86,6 +87,55 @@ def gen_traj_from_val_func(data_dir, no_of_fake_traj=100, traj_length_limits=(10
 	plt.savefig(data_dir+'/fake_experts.png', bbox_inches='tight')
 	plt.close()
 
+def gen_astar(data_dir, no_of_fake_traj=1):
+	file = open(data_dir+"/grid.pkl",'rb')
+	grid = pkl.load(file)
+	file.close()
+	# ax = plt.gca()
+	ax = plt.subplot(111)
+	grid.plot_cost_function_2d(show_plot=0)
+	
+	start_point_list = []
+	goal_point_list = []
+
+	start_point_list.append((20, 20)) 
+	goal_point_list.append((50, 50))
+
+	start_point_list.append((50, 50)) 
+	goal_point_list.append((80, 80))
+
+	start_point_list.append((20, 80)) 
+	goal_point_list.append((50, 50))
+
+	start_point_list.append((80, 20)) 
+	goal_point_list.append((50, 50))
+
+	for idx in range(no_of_fake_traj):
+		print "a_star begin"	
+		came_from, cost_so_far = mdp_solvers.a_star(grid, start_point_list[idx], goal_point_list[idx])
+		curr_traj = mdp_solvers.reconstruct_path(came_from, start_point_list[idx], goal_point_list[idx])
+		# curr_traj = mdp_solvers.a_star_fast(grid, start_point, goal_point)
+		print "a_star done"
+
+		curr_traj_feats = grid.get_feat_vect_traj(curr_traj)
+
+		# plot starting point as a star
+		ax.plot(curr_traj[0][1], curr_traj[0][0], marker='*', markersize=10, color="green")
+		# plot ending point as a star
+		ax.plot(curr_traj[-1][1], curr_traj[-1][0], marker='*', markersize=10, color="red")
+		# plot rest of the points and join them via lines
+
+		figure = plt.plot([point[1] for point in curr_traj], [point[0] for point in curr_traj])
+		plt.setp(figure, 'linewidth', 2.0)
+		file = open(data_dir+"/features/a_star_traj_"+str(idx)+'.txt', 'w')
+		for idx, state_feat in enumerate(curr_traj_feats):
+			file.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
+			file.write(' '.join(str(each_feat) for each_feat in state_feat))
+			file.write("\n")
+
+	plt.savefig(data_dir+'/a_star_fake_experts.png', bbox_inches='tight')
+	plt.close()
+
 if __name__ == "__main__":
 	# specify an obstacle dict in the form {semantic_class_index, number_of_obstacles to add of that class}
 	obstacles_dict = {1:5, 2:10, 3:15}
@@ -98,5 +148,7 @@ if __name__ == "__main__":
 		curr_data_dir = "data/"+str(idx)
 		if not os.path.exists(curr_data_dir):
 			os.makedirs(curr_data_dir)
-		do_value_iteration(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
-		gen_traj_from_val_func(curr_data_dir)
+		# do_value_iteration(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
+		# gen_traj_from_val_func(curr_data_dir)
+		gen_astar(curr_data_dir, no_of_fake_traj=4)
+		print idx

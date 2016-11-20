@@ -44,6 +44,7 @@ for curr_traj in all_traj:
 	ctr+=1
 
 plt.show()
+plt.savefig('plots/fake_experts.png', bbox_inches='tight')
 
 # save the fake expert trajectories in a file. We ll use this to recover the reward function
 # file = open("data/fake_traj.pkl",'w')

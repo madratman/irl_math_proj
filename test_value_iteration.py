@@ -26,12 +26,12 @@ for semantic_class_index, no_of_obstacles in obstacles_dict.iteritems():
 								   semantic_class=semantic_class_index, 
 								   zero_out_distance=zero_out_dist_dict[semantic_class_index]))
 
-# grid.add_goal((40,40))
+grid.add_goal((40,40))
 
 # make cost function and save it to plots/cost_function.png.
 grid.make_simple_cost_function()
-grid.plot_cost_function_2d(show_plot=0)
 grid.plot_obstacles()
+grid.plot_cost_function_2d(show_plot=0)
 # solve the grid mdp with obstacles with value iteration
 opt_val_func = mdp_solvers.value_iteration(grid,thresh=0.00001, max_iter=400)
 
