@@ -3,3 +3,5 @@ plots/*
 data/*
 *.zip
 temp/*
+temp.sh
+delete_duplicates.sh

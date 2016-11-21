@@ -34,11 +34,13 @@ def get_indices_of_repeated_states(filename, delete_duplicates=0, delete_min_len
 		# pprint(entries_to_delete)
 		all_at_once = [i for j, i in enumerate(all_at_once) if j not in indices_flat]
 		# pprint(all_at_once)
+
 		if delete_min_length:
 			if len(all_at_once)<min_length:
 				# print filename
 				# os.system("cp "+filename+" temp/")
-				os.system("rm "+filename)
+				with open("delete_duplicates.sh", "a") as rm_file: # append
+					rm_file.write("rm "+filename+"\n")
 
 		# file = open(filename+".uniq", 'w')
 		file = open(filename, 'w')
@@ -51,6 +53,8 @@ if __name__ == "__main__":
 	data_dir = '/home/ratneshmadaan/projects/irl_math_proj/data'
 	subdir = sorted(next(os.walk(data_dir))[1])
 	str_to_remove = 'a_star'
+	open("delete_duplicates.sh", 'w').close() # empty the delete_duplicates.sh file first
+	os.system("chmod +x delete_duplicates.sh")
 	for idx in range(len(subdir)):
 		traj_dir = os.path.join(data_dir, subdir[idx], 'features')
 		files = os.listdir(traj_dir)

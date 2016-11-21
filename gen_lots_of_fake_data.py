@@ -111,6 +111,24 @@ def gen_astar(data_dir, no_of_fake_traj=1):
 	start_point_list.append((80, 20)) 
 	goal_point_list.append((50, 50))
 
+	start_point_list.append((20, 80)) 
+	goal_point_list.append((80, 80))
+
+	start_point_list.append((80, 20)) 
+	goal_point_list.append((80, 80))
+
+	start_point_list.append((20, 20)) 
+	goal_point_list.append((20, 80)) 
+
+	start_point_list.append((20, 20)) 
+	goal_point_list.append((80, 20))
+
+	start_point_list.append((20, 50)) 
+	goal_point_list.append((50, 50))
+
+	start_point_list.append((50, 20)) 
+	goal_point_list.append((50, 50))
+
 	for idx in range(no_of_fake_traj):
 		print "a_star begin"	
 		came_from, cost_so_far = mdp_solvers.a_star(grid, start_point_list[idx], goal_point_list[idx])
@@ -151,6 +169,6 @@ if __name__ == "__main__":
 		if not os.path.exists(curr_data_dir):
 			os.makedirs(curr_data_dir)
 		# do_value_iteration(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
-		gen_traj_from_val_func(curr_data_dir, no_of_fake_traj=100, traj_length_limits=(50,200))
-		# gen_astar(curr_data_dir, no_of_fake_traj=4)
+		# gen_traj_from_val_func(curr_data_dir, no_of_fake_traj=500, traj_length_limits=(50,200))
+		gen_astar(curr_data_dir, no_of_fake_traj=10)
 		print idx

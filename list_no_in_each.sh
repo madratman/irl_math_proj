@@ -1,0 +1,10 @@
+ls data/0/features/traj*|wc -l
+ls data/1/features/traj*|wc -l
+ls data/2/features/traj*|wc -l
+ls data/3/features/traj*|wc -l
+ls data/4/features/traj*|wc -l
+ls data/5/features/traj*|wc -l
+ls data/6/features/traj*|wc -l
+ls data/7/features/traj*|wc -l
+ls data/8/features/traj*|wc -l
+ls data/9/features/traj*|wc -l
