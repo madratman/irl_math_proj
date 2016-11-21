@@ -43,8 +43,8 @@ class Gridworld:
 			cost_iter_arr = (1.0/(2*self.obstacles[i].zero_out_distance))*((cost_iter_arr-self.obstacles[i].zero_out_distance)**2);
 			curr_obstacle_class = self.obstacles[i].semantic_class
 			curr_semantic_class_weight = self.semantic_obstacle_weights[curr_obstacle_class]
-			curr_obstacle_class *= curr_semantic_class_weight
-			obs_cost += cost_iter_arr
+			# curr_obstacle_class *= curr_semantic_class_weight
+			obs_cost += cost_iter_arr*curr_semantic_class_weight
 		self.cost_function = obs_cost
 		self.reward = -obs_cost
 		for goal in self.goals:
@@ -98,8 +98,7 @@ class Gridworld:
 		if ('filename' in kwargs):
 			plt.savefig(kwargs['filename'], bbox_inches='tight')
 		else:
-			plt.savefig('plots/obstacles.png', bbox_inches="tight")
-		plt.close()
+			plt.savefig('plots/obstacles.png', bbox_inches='tight')
 
 	def get_children(self, point):
 		# point is list [x,y]
@@ -121,25 +120,123 @@ class Gridworld:
 	def add_goal(self, location):
 		self.goals.append(location)
 
-	def get_feat_vect_at_state(self, state_location):
+	def get_feat_at_state_closest_three_of_each_class(self, state_location):
+		# for each obstacle in the grid object, find the euclidean distance from state_location
+		obs_dist_list = [np.linalg.norm(np.asarray(state_location)-np.asarray(each_obs.location)) for each_obs in self.obstacles]
+		
+		# find the class of each obstacle
+		obs_class_list = [each_obs.semantic_class for each_obs in self.obstacles]
+		
+		# sort the list which contains the distances. DO NOT sort obs_dist_list before !!!
+		obs_class_list = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
+		obs_dist_list = sorted(obs_dist_list)
+		
+
+		# find closest obstacles' indices of each class
+		# http://codereview.stackexchange.com/questions/24126/retrieving-the-first-occurrence-of-every-unique-value-from-a-csv-column
+		temp_dict = {obs_class:idx for idx,obs_class in reversed(list(enumerate(obs_class_list)))}
+		indices = temp_dict.values() 
+		feature_vector = [obs_dist_list[index] for index in indices]
+		feature_vector = [1./((x+1)**2) for x in feature_vector] # feature is 1/(dist^2) where dist = distance from obstacle
+		return feature_vector
+
+	def get_feature_at_state_angle_dist_onehot(self, state_location, no_of_closest_obstacles=5):
 		# for each obstacle in the grid object, find the euclidean distance from state_location
 		obs_dist_list = [np.linalg.norm(np.asarray(state_location)-np.asarray(each_obs.location)) for each_obs in self.obstacles]
 		# find the class of each obstacle
 		obs_class_list = [each_obs.semantic_class for each_obs in self.obstacles]
-		# sort the list which contains the distances
-		sorted_obs_dist = sorted(obs_dist_list)
-		sorted_classes = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
-		
-		# find closest obstacles' indices of each class
-		# http://codereview.stackexchange.com/questions/24126/retrieving-the-first-occurrence-of-every-unique-value-from-a-csv-column
-	 	temp_dict = {obs_class:idx for idx,obs_class in reversed(list(enumerate(sorted_classes)))}
-	 	indices = temp_dict.values() 
-	 	feature_vector = [sorted_obs_dist[index] for index in indices]
-	 	return feature_vector
+		# only consider obstacles in a certain radius
+		# indices_to_filter = [i for i,x in enumerate(sorted_obs_dist) if x>dist_thresh]
+		# # http://stackoverflow.com/questions/497426/deleting-multiple-elements-from-a-list
+		# obs_dist_list = [i for j, i in enumerate(obs_dist_list) if j not in indices_to_filter]
+		# obs_class_list = [i for j, i in enumerate(obs_class_list) if j not in indices_to_filter]
 
-	def get_feat_vect_traj(self, trajectory):
+		# sort the list which contains the distances
+		obs_class_list = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
+		obs_dist_list = sorted(obs_dist_list)
+		
+		# only consider first no_of_closest_obstacles elements
+		obs_dist_list = obs_dist_list[:no_of_closest_obstacles]
+		obs_class_list = obs_class_list[:no_of_closest_obstacles]
+
+		obs_dist_list = [1./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+		obs_angle_list = [np.arctan2(each_obs.location[1]-state_location[1], each_obs.location[0]-state_location[0]) for each_obs in self.obstacles]
+		# bring to range [0,2*pi] (np.arctan2 is [-pi,pi])
+		obs_angle_list = [angle+np.pi for angle in obs_angle_list]
+		one_hot_vecs = np.eye(len(self.semantic_obstacle_weights))
+
+		feature_vector = []
+		for idx in range(len(obs_dist_list)):
+			feature_vector.append(obs_angle_list)
+			feature_vector.append(one_hot_vecs[obs_class_list[idx]-1].tolist()) # obstacle classes are 1 indexed.
+			feature_vector.append(obs_dist_list[idx])
+
+		return flatten_list(feature_vector)
+
+	def get_feature_at_state_dist_onehot(self, state_location, no_of_closest_obstacles=5):		
+		# for each obstacle in the grid object, find the euclidean distance from state_location
+		obs_dist_list = [np.linalg.norm(np.asarray(state_location)-np.asarray(each_obs.location)) for each_obs in self.obstacles]
+		# find the class of each obstacle
+		obs_class_list = [each_obs.semantic_class for each_obs in self.obstacles]
+
+		# sort the list which contains the distances
+		obs_class_list = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
+		obs_dist_list = sorted(obs_dist_list)
+		
+		# only consider first no_of_closest_obstacles elements
+		obs_dist_list = obs_dist_list[:no_of_closest_obstacles]
+		obs_class_list = obs_class_list[:no_of_closest_obstacles]
+
+		obs_dist_list = [1./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+		one_hot_vecs = np.eye(len(self.semantic_obstacle_weights))
+
+		feature_vector = []
+		for idx in range(len(obs_dist_list)):
+			feature_vector.append(one_hot_vecs[obs_class_list[idx]-1].tolist()) # obstacle classes are 1 indexed.
+			feature_vector.append(obs_dist_list[idx])
+
+		# flatten feature_vector to make a single list 
+		return flatten_list(feature_vector)
+
+	def get_feat_at_state_dist_no_onehot(self, state_location, no_of_closest_obstacles=3):
+		# for each obstacle in the grid object, find the euclidean distance from state_location
+		obs_dist_list = [np.linalg.norm(np.asarray(state_location)-np.asarray(each_obs.location)) for each_obs in self.obstacles]
+		# find the class of each obstacle
+		obs_class_list = [each_obs.semantic_class for each_obs in self.obstacles]
+		# print "before sort", obs_dist_list
+		# print "before sort", obs_class_list
+
+		# sort the list which contains the distances
+		obs_class_list = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
+		obs_dist_list = sorted(obs_dist_list)
+		# print "after sort", obs_dist_list
+		# print "after sort", obs_class_list, "\n"
+
+		# only consider first no_of_closest_obstacles elements
+		obs_dist_list = obs_dist_list[:no_of_closest_obstacles]
+		obs_class_list = obs_class_list[:no_of_closest_obstacles]
+
+		obs_dist_list = [1./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+
+		feature_vector = []
+		for idx in range(len(obs_dist_list)):
+			feature_vector.append(obs_dist_list[idx])
+
+		return flatten_list(feature_vector)
+
+	def get_feat_vect_traj(self, trajectory, features=get_feat_at_state_dist_no_onehot):
 		all_feats = []
 		for idx in range(len(trajectory)):
 			curr_feature = self.get_feat_vect_at_state(trajectory[idx])
 			all_feats.append(curr_feature)
 		return all_feats
+
+# http://stackoverflow.com/questions/10632111/how-to-flatten-a-hetrogenous-list-of-list-into-a-single-list-in-python
+def flatten_list(xs):
+	result = []
+	if isinstance(xs, (list, tuple)):
+		for x in xs:
+			result.extend(flatten_list(x))
+	else:
+		result.append(xs)
+	return result

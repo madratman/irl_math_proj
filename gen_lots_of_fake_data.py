@@ -6,7 +6,7 @@ import pickle as pkl
 from random import randint as randi
 import os
 
-def do_value_iteration(data_dir, obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights):
+def make_grid(data_dir, obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights):
 	# create object of grid_dims=(no_of_rows, no_of_cols), "four_conn" or "eight_conn", discount
 	grid = Gridworld(grid_dims=(100,100), connectivity="eight_conn", discount=0.98)
 	n_rows, n_cols = grid.grid_dims['rows'], grid.grid_dims['cols']
@@ -23,6 +23,22 @@ def do_value_iteration(data_dir, obstacles_dict, zero_out_dist_dict, semantic_ob
 
 	# make cost function and save it to plots/cost_function.png.
 	grid.make_simple_cost_function()
+	grid.plot_cost_function_2d(show_plot=0, filename=data_dir+"/costmap.png")
+	grid.plot_obstacles(filename=data_dir+"/obstacles.png")
+	plt.close()
+	grid.plot_obstacles(filename=data_dir+"/obstacles_only.png")
+
+	# save grid object
+	file = open(data_dir+"/grid.pkl","wb")
+	pkl.dump(grid,file)
+	file.close()
+
+def do_value_iteration(data_dir):
+	# load grid file generated from test_value_iteration.py
+	file = open(data_dir+"/grid.pkl",'rb')
+	grid = pkl.load(file)
+	file.close()
+
 	# solve the grid mdp with obstacles with value iteration
 	opt_val_func = mdp_solvers.value_iteration(grid,thresh=0.00001, max_iter=400)
 
@@ -47,8 +63,6 @@ def gen_traj_from_val_func(data_dir, no_of_fake_traj=100, traj_length_limits=(10
 	file = open(data_dir+"/grid.pkl",'rb')
 	grid = pkl.load(file)
 	file.close()
-	grid.plot_cost_function_2d(show_plot=0, filename=data_dir+"/costmap.png")
-	grid.plot_obstacles(filename=data_dir+"/obstacles.png")
 
 	# load and plot opt value funciton generated from test_value_iteration.py
 	opt_val_func = np.load(data_dir+'/opt_val_func.npy')
@@ -92,51 +106,95 @@ def gen_astar(data_dir, no_of_fake_traj=1):
 	file = open(data_dir+"/grid.pkl",'rb')
 	grid = pkl.load(file)
 	file.close()
+	plt.close
 	# ax = plt.gca()
 	ax = plt.subplot(111)
 	grid.plot_cost_function_2d(show_plot=0)
 	
-	start_point_list = []
-	goal_point_list = []
+	# start_point_list = []
+	# goal_point_list = []
 
-	start_point_list.append((20, 20)) 
-	goal_point_list.append((50, 50))
+	# start_point_list.append((20, 20)) 
+	# goal_point_list.append((50, 50))
 
-	start_point_list.append((50, 50)) 
-	goal_point_list.append((80, 80))
+	# start_point_list.append((50, 50)) 
+	# goal_point_list.append((80, 80))
 
-	start_point_list.append((20, 80)) 
-	goal_point_list.append((50, 50))
+	# start_point_list.append((20, 80)) 
+	# goal_point_list.append((50, 50))
 
-	start_point_list.append((80, 20)) 
-	goal_point_list.append((50, 50))
+	# start_point_list.append((80, 20)) 
+	# goal_point_list.append((50, 50))
 
-	start_point_list.append((20, 80)) 
-	goal_point_list.append((80, 80))
+	# start_point_list.append((20, 80)) 
+	# goal_point_list.append((80, 80))
 
-	start_point_list.append((80, 20)) 
-	goal_point_list.append((80, 80))
+	# start_point_list.append((80, 20)) 
+	# goal_point_list.append((80, 80))
 
-	start_point_list.append((20, 20)) 
-	goal_point_list.append((20, 80)) 
+	# start_point_list.append((20, 20)) 
+	# goal_point_list.append((20, 80)) 
 
-	start_point_list.append((20, 20)) 
-	goal_point_list.append((80, 20))
+	# start_point_list.append((20, 20)) 
+	# goal_point_list.append((80, 20))
 
-	start_point_list.append((20, 50)) 
-	goal_point_list.append((50, 50))
+	# start_point_list.append((20, 50)) 
+	# goal_point_list.append((50, 50))
 
-	start_point_list.append((50, 20)) 
-	goal_point_list.append((50, 50))
+	# start_point_list.append((50, 20)) 
+	# goal_point_list.append((50, 50))
 
 	for idx in range(no_of_fake_traj):
-		print "a_star begin"	
-		came_from, cost_so_far = mdp_solvers.a_star(grid, start_point_list[idx], goal_point_list[idx])
-		curr_traj = mdp_solvers.reconstruct_path(came_from, start_point_list[idx], goal_point_list[idx])
-		# curr_traj = mdp_solvers.a_star_fast(grid, start_point, goal_point)
-		print "a_star done"
+		start_point = (randi(0, grid.grid_dims['rows']-1), randi(0, grid.grid_dims['cols']-1))
+		goal_point = (randi(0, grid.grid_dims['rows']-1), randi(0, grid.grid_dims['cols']-1))
+		print data_dir, ", traj", idx, "of", no_of_fake_traj, ", start:", start_point, "goal:", goal_point
 
-		curr_traj_feats = grid.get_feat_vect_traj(curr_traj)
+		came_from, cost_so_far = mdp_solvers.a_star(grid, start_point, goal_point)
+		curr_traj = mdp_solvers.reconstruct_path(came_from, start_point, goal_point)
+		# came_from, cost_so_far = mdp_solvers.a_star(grid, start_point_list[idx], goal_point_list[idx])
+		# curr_traj = mdp_solvers.reconstruct_path(came_from, start_point_list[idx], goal_point_list[idx])
+		# curr_traj = mdp_solvers.a_star_fast(grid, start_point, goal_point)
+		# print "a_star done"
+		if not os.path.exists(data_dir+"/features/closest_three_of_each_class"):
+			os.makedirs(data_dir+"/features/closest_three_of_each_class")
+		if not os.path.exists(data_dir+"/features/dist"):
+			os.makedirs(data_dir+"/features/dist")
+		if not os.path.exists(data_dir+"/features/dist_onehot"):
+			os.makedirs(data_dir+"/features/dist_onehot")	
+		if not os.path.exists(data_dir+"/features/angle_dist_onehot"):
+			os.makedirs(data_dir+"/features/angle_dist_onehot")			
+
+		file_1 = open(data_dir+"/features/closest_three_of_each_class/a_star_traj_"+str(idx).zfill(len(str(no_of_fake_traj)))+'.txt', 'w')
+		file_2 = open(data_dir+"/features/dist/a_star_traj_"+str(idx).zfill(len(str(no_of_fake_traj)))+'.txt', 'w')
+		file_3 = open(data_dir+"/features/dist_onehot/a_star_traj_"+str(idx).zfill(len(str(no_of_fake_traj)))+'.txt', 'w')
+		file_4 = open(data_dir+"/features/angle_dist_onehot/a_star_traj_"+str(idx).zfill(len(str(no_of_fake_traj)))+'.txt', 'w')
+		
+		for idx in range(len(curr_traj)):
+			curr_feats_closest_three_of_each_class = grid.get_feat_at_state_closest_three_of_each_class(curr_traj[idx])
+			curr_feats_dist = grid.get_feat_at_state_dist_no_onehot(curr_traj[idx], no_of_closest_obstacles=5)
+			curr_feats_dist_onehot = grid.get_feature_at_state_dist_onehot(curr_traj[idx], no_of_closest_obstacles=5)
+			curr_feats_angle_dist_onehot = grid.get_feature_at_state_angle_dist_onehot(curr_traj[idx], no_of_closest_obstacles=5)
+
+			file_1.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
+			file_1.write(' '.join(str(each_feat) for each_feat in curr_feats_closest_three_of_each_class))
+			file_1.write("\n")
+
+			file_2.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
+			file_2.write(' '.join(str(each_feat) for each_feat in curr_feats_dist))
+			file_2.write("\n")			
+
+			file_3.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
+			file_3.write(' '.join(str(each_feat) for each_feat in curr_feats_dist_onehot))
+			file_3.write("\n")
+
+			file_4.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
+			file_4.write(' '.join(str(each_feat) for each_feat in curr_feats_angle_dist_onehot))
+			file_4.write("\n")
+
+		file_1.close()
+		file_2.close()
+		file_3.close()
+		file_4.close()
 
 		# plot starting point as a star
 		ax.plot(curr_traj[0][1], curr_traj[0][0], marker='*', markersize=10, color="green")
@@ -146,29 +204,26 @@ def gen_astar(data_dir, no_of_fake_traj=1):
 
 		figure = plt.plot([point[1] for point in curr_traj], [point[0] for point in curr_traj])
 		plt.setp(figure, 'linewidth', 2.0)
-		file = open(data_dir+"/features/a_star_traj_"+str(idx)+'.txt', 'w')
-		for idx, state_feat in enumerate(curr_traj_feats):
-			file.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
-			file.write(' '.join(str(each_feat) for each_feat in state_feat))
-			file.write("\n")
-		file.close()
 
 	plt.savefig(data_dir+'/a_star_fake_experts.png', bbox_inches='tight')
 	plt.close()
 
 if __name__ == "__main__":
 	# specify an obstacle dict in the form {semantic_class_index, number_of_obstacles to add of that class}
-	obstacles_dict = {1:5, 2:10, 3:15}
+	obstacles_dict = {1:15, 2:15, 3:15}
 	# specify the zero_out_distanceeo	s in the form {semantic_class_index, zero_out_distance of that class}
-	zero_out_dist_dict = {1:25, 2:15, 3:10}
+	zero_out_dist_dict = {1:20, 2:15, 3:25}
 	# declare how much to weigh each obstacle of each class in the form {semantic_class_index, weight of obstacke of that class}
-	semantic_obstacle_weights= {1:25, 2:17.5, 3:15}
+	semantic_obstacle_weights= {1:0.6, 2:0.4, 3:0.2}
 
-	for idx in range(10):
-		curr_data_dir = "data/"+str(idx)
+	no_of_gridworlds = 10
+
+	for idx in range(no_of_gridworlds):
+		curr_data_dir = "data/"+str(idx).zfill(len(str(no_of_gridworlds)))
 		if not os.path.exists(curr_data_dir):
 			os.makedirs(curr_data_dir)
-		# do_value_iteration(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
+		make_grid(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
+		# do_value_iteration(curr_data_dir)
 		# gen_traj_from_val_func(curr_data_dir, no_of_fake_traj=500, traj_length_limits=(50,200))
-		gen_astar(curr_data_dir, no_of_fake_traj=10)
+		gen_astar(curr_data_dir, no_of_fake_traj=35)
 		print idx

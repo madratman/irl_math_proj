@@ -1,5 +1,6 @@
 import os
 from pprint import pprint
+
 def get_indices_of_repeated_states(filename, delete_duplicates=0, delete_min_length=0, min_length=20):
 	all_at_once = []
 	with open(filename) as file:
@@ -12,12 +13,13 @@ def get_indices_of_repeated_states(filename, delete_duplicates=0, delete_min_len
 
 	all_states = zip(row_idx, col_idx)
 
+	# duplicates() duplicates_indices() from some stackoverflow answer
 	from collections import Counter, defaultdict
 	def duplicates(lst):
-	    cnt= Counter(lst)
+	    cnt = Counter(lst)
 	    return [key for key in cnt.keys() if cnt[key]> 1]
 	def duplicates_indices(lst):
-	    dup, ind= duplicates(lst), defaultdict(list)
+	    dup, ind = duplicates(lst), defaultdict(list)
 	    for i, v in enumerate(lst):
 	        if v in dup: ind[v].append(i)
 	    return ind
@@ -27,11 +29,12 @@ def get_indices_of_repeated_states(filename, delete_duplicates=0, delete_min_len
 
 	indices_flat = [item for sublist in indices for item in sublist]
 	# print duplicates(all_states) # ['a', 'b']
-	# print duplicates_indices(all_states) # ..., {'a': [0, 2, 5], 'b': [1, 4]})
+	# print duplicates_indices(all_states) # {'a': [0, 2, 5], 'b': [1, 4]})
 
 	if delete_duplicates:
 		# entries_to_delete = [all_at_once[idx] for idx in indices_flat]
 		# pprint(entries_to_delete)
+		# http://stackoverflow.com/questions/497426/deleting-multiple-elements-from-a-list
 		all_at_once = [i for j, i in enumerate(all_at_once) if j not in indices_flat]
 		# pprint(all_at_once)
 
