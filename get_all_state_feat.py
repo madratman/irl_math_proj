@@ -44,6 +44,57 @@ def get_all_feats(data_dir):
 	file_3.close()
 	file_4.close()
 
+
+def dump_all_feats_pkl(data_dir):
+	file = open(data_dir+"/grid.pkl",'rb')
+	grid = pkl.load(file)
+	file.close()
+
+	# all_feats_closest_three_of_each_class = []
+	# all_feats_dist = []
+	# all_feats_dist_onehot = []
+	# all_feats_angle_dist_onehot = []
+	all_feats_bias_dist_onehot = []
+
+	# this makes me puke but meh	
+	for row in range(grid.grid_dims['rows']):
+		# temp_1 = []
+		# temp_2 = []
+		# temp_3 = []
+		# temp_4 = []
+		temp_5 = []
+		for col in range(grid.grid_dims['cols']):
+			# pass tuple of (row, col)
+			# temp_1.append(grid.get_feat_at_state_closest_three_of_each_class((row, col)))
+			# temp_2.append(grid.get_feat_at_state_dist_no_onehot((row, col), no_of_closest_obstacles=5))
+			# temp_3.append(grid.get_feature_at_state_dist_onehot((row, col), no_of_closest_obstacles=5))
+			# temp_4.append(grid.get_feature_at_state_angle_dist_onehot((row, col), no_of_closest_obstacles=5))
+			temp_5.append(grid.get_feature_at_state_bias_dist_onehot((row, col), no_of_closest_obstacles=5))
+		
+		# all_feats_closest_three_of_each_class.append(temp_1)
+		# all_feats_dist.append(temp_2)
+		# all_feats_dist_onehot.append(temp_3)
+		# all_feats_angle_dist_onehot.append(temp_4)
+		all_feats_bias_dist_onehot.append(temp_5)
+
+	# file_1 = open(data_dir+"/all_closest_three_of_each_class.pkl", "wb")
+	# file_2 = open(data_dir+"/all_dist.pkl", "wb")
+	# file_3 = open(data_dir+"/all_dist_onehot.pkl", "wb")
+	# file_4 = open(data_dir+"/all_angle_dist_onehot.pkl", "wb")
+	file_5 = open(data_dir+"/all_feats_bias_dist_onehot.pkl", "wb")
+	
+	# pkl.dump(all_feats_closest_three_of_each_class,file_1)
+	# pkl.dump(all_feats_dist,file_2)
+	# pkl.dump(all_feats_dist_onehot,file_3)
+	# pkl.dump(all_feats_angle_dist_onehot,file_4)
+	pkl.dump(all_feats_bias_dist_onehot,file_5)
+
+	# file_1.close()
+	# file_2.close()
+	# file_3.close()
+	# file_4.close()
+	file_5.close()
+
 def save_only_obstacle_locs(data_dir):
 	file = open(data_dir+"/grid.pkl",'rb')
 	grid = pkl.load(file)
@@ -68,8 +119,9 @@ if __name__ == "__main__":
 	for idx in range(10):
 		print idx
 		curr_data_dir = "data/"+str(idx).zfill(len(str(no_of_gridworlds)))
-		get_all_feats(curr_data_dir)
-
+		# get_all_feats(curr_data_dir)
+		dump_all_feats_pkl(curr_data_dir)
+		# dump_all_default_dict(curr_data_dir)
 	# for idx in range(10):
 	# 	save_only_obstacle_locs("data/"+str(idx))
 	# 	print idx

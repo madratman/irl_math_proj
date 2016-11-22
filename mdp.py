@@ -175,6 +175,34 @@ class Gridworld:
 
 		return flatten_list(feature_vector)
 
+	def get_feature_at_state_bias_dist_onehot(self, state_location, no_of_closest_obstacles=5):
+		# for each obstacle in the grid object, find the euclidean distance from state_location
+		obs_dist_list = [np.linalg.norm(np.asarray(state_location)-np.asarray(each_obs.location)) for each_obs in self.obstacles]
+		# find the class of each obstacle
+		obs_class_list = [each_obs.semantic_class for each_obs in self.obstacles]
+
+		# sort the list which contains the distances
+		obs_class_list = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
+		obs_dist_list = sorted(obs_dist_list)
+		
+		# only consider first no_of_closest_obstacles elements
+		obs_dist_list = obs_dist_list[:no_of_closest_obstacles]
+		obs_class_list = obs_class_list[:no_of_closest_obstacles]
+
+		obs_dist_list = [1./(x+1) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+		obs_dist_square_list = [1./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+		# bring to range [0,2*pi] (np.arctan2 is [-pi,pi])
+		one_hot_vecs = np.eye(len(self.semantic_obstacle_weights))
+
+		feature_vector = []
+		for idx in range(len(obs_dist_list)):
+			feature_vector.append(one_hot_vecs[obs_class_list[idx]-1].tolist()) # obstacle classes are 1 indexed.
+			feature_vector.append(obs_dist_list[idx])
+			feature_vector.append(obs_dist_square_list[idx])
+
+		feature_vector.append(1.) #bias
+		return flatten_list(feature_vector)
+
 	def get_feature_at_state_dist_onehot(self, state_location, no_of_closest_obstacles=5):		
 		# for each obstacle in the grid object, find the euclidean distance from state_location
 		obs_dist_list = [np.linalg.norm(np.asarray(state_location)-np.asarray(each_obs.location)) for each_obs in self.obstacles]

@@ -5,3 +5,5 @@ data/*
 temp/*
 temp.sh
 delete_duplicates.sh
+*.txt
+temp*
