@@ -106,7 +106,7 @@ def gen_astar(data_dir, no_of_fake_traj=1):
 	file = open(data_dir+"/grid.pkl",'rb')
 	grid = pkl.load(file)
 	file.close()
-	plt.close
+	plt.close()
 	# ax = plt.gca()
 	ax = plt.subplot(111)
 	grid.plot_cost_function_2d(show_plot=0)
@@ -208,6 +208,43 @@ def gen_astar(data_dir, no_of_fake_traj=1):
 	plt.savefig(data_dir+'/a_star_fake_experts.png', bbox_inches='tight')
 	plt.close()
 
+def recompute_single_feature_thanks_to_bug(data_dir, no_of_fake_traj=1):
+	file = open(data_dir+"/grid.pkl",'rb')
+	grid = pkl.load(file)
+	file.close()
+	plt.close()
+	# ax = plt.gca()
+	ax = plt.subplot(111)
+	grid.plot_cost_function_2d(show_plot=0)
+
+	for idx in range(no_of_fake_traj):
+		file_done = data_dir+"/features/dist/a_star_traj_"+str(idx).zfill(len(str(no_of_fake_traj)))+'.txt'
+		list_of_lists = []
+		
+		with open(file_done) as f:
+		    for line in f:
+		        inner_list = [elt.strip() for elt in line.split(' ')]
+		        list_of_lists.append(inner_list)
+		
+		curr_traj = []
+		for listicle in list_of_lists:
+			# file is x,y. but state is (y,x) or (row, col)
+			curr_traj.append((int(listicle[1]), int(listicle[0]))) 
+		
+		if not os.path.exists(data_dir+"/features/angle_dist_onehot"):
+			os.makedirs(data_dir+"/features/angle_dist_onehot")			
+
+		file_4 = open(data_dir+"/features/angle_dist_onehot/a_star_traj_"+str(idx).zfill(len(str(no_of_fake_traj)))+'.txt', 'w')
+		
+		for idx in range(len(curr_traj)):
+			curr_feats_angle_dist_onehot = grid.get_feature_at_state_angle_dist_onehot(curr_traj[idx], no_of_closest_obstacles=5)
+
+			file_4.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
+			file_4.write(' '.join(str(each_feat) for each_feat in curr_feats_angle_dist_onehot))
+			file_4.write("\n")
+
+		file_4.close()
+
 if __name__ == "__main__":
 	# specify an obstacle dict in the form {semantic_class_index, number_of_obstacles to add of that class}
 	obstacles_dict = {1:15, 2:15, 3:15}
@@ -222,8 +259,10 @@ if __name__ == "__main__":
 		curr_data_dir = "data/"+str(idx).zfill(len(str(no_of_gridworlds)))
 		if not os.path.exists(curr_data_dir):
 			os.makedirs(curr_data_dir)
-		make_grid(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
+		# make_grid(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
 		# do_value_iteration(curr_data_dir)
 		# gen_traj_from_val_func(curr_data_dir, no_of_fake_traj=500, traj_length_limits=(50,200))
-		gen_astar(curr_data_dir, no_of_fake_traj=35)
+		# gen_astar(curr_data_dir, no_of_fake_traj=35)
+		recompute_single_feature_thanks_to_bug(curr_data_dir, no_of_fake_traj=35)
+
 		print idx

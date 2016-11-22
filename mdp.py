@@ -131,7 +131,6 @@ class Gridworld:
 		obs_class_list = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
 		obs_dist_list = sorted(obs_dist_list)
 		
-
 		# find closest obstacles' indices of each class
 		# http://codereview.stackexchange.com/questions/24126/retrieving-the-first-occurrence-of-every-unique-value-from-a-csv-column
 		temp_dict = {obs_class:idx for idx,obs_class in reversed(list(enumerate(obs_class_list)))}
@@ -145,6 +144,9 @@ class Gridworld:
 		obs_dist_list = [np.linalg.norm(np.asarray(state_location)-np.asarray(each_obs.location)) for each_obs in self.obstacles]
 		# find the class of each obstacle
 		obs_class_list = [each_obs.semantic_class for each_obs in self.obstacles]
+		# state is (row,col)==(y,x) .arctan2(y2-y1,x2-x1)
+		obs_angle_list = [np.arctan2(each_obs.location[0]-state_location[0], each_obs.location[1]-state_location[1]) for each_obs in self.obstacles]
+		obs_angle_list = [angle+np.pi for angle in obs_angle_list]
 		# only consider obstacles in a certain radius
 		# indices_to_filter = [i for i,x in enumerate(sorted_obs_dist) if x>dist_thresh]
 		# # http://stackoverflow.com/questions/497426/deleting-multiple-elements-from-a-list
@@ -153,21 +155,21 @@ class Gridworld:
 
 		# sort the list which contains the distances
 		obs_class_list = [obs_class for (obs_dist, obs_class) in sorted(zip(obs_dist_list, obs_class_list))]
+		obs_angle_list = [obs_angle for (obs_dist, obs_angle) in sorted(zip(obs_dist_list, obs_angle_list))]
 		obs_dist_list = sorted(obs_dist_list)
 		
 		# only consider first no_of_closest_obstacles elements
 		obs_dist_list = obs_dist_list[:no_of_closest_obstacles]
 		obs_class_list = obs_class_list[:no_of_closest_obstacles]
+		obs_angle_list = obs_angle_list[:no_of_closest_obstacles]
 
 		obs_dist_list = [1./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
-		obs_angle_list = [np.arctan2(each_obs.location[1]-state_location[1], each_obs.location[0]-state_location[0]) for each_obs in self.obstacles]
 		# bring to range [0,2*pi] (np.arctan2 is [-pi,pi])
-		obs_angle_list = [angle+np.pi for angle in obs_angle_list]
 		one_hot_vecs = np.eye(len(self.semantic_obstacle_weights))
 
 		feature_vector = []
 		for idx in range(len(obs_dist_list)):
-			feature_vector.append(obs_angle_list)
+			feature_vector.append(obs_angle_list[idx])
 			feature_vector.append(one_hot_vecs[obs_class_list[idx]-1].tolist()) # obstacle classes are 1 indexed.
 			feature_vector.append(obs_dist_list[idx])
 
