@@ -1,0 +1,26 @@
+colormap(jet)
+foldername='../outputs_toolkit';
+for i=1:10
+    imagesc(-costMap{i});
+    name=num2str(i-1,'%02d');
+    print(strcat(foldername,name,'_costMap_orig'),'-dpng');
+    contour(-costMap{i});
+    print(strcat(foldername,name,'_countourMap_orig'),'-dpng');
+end
+
+wAvg=zeros(size(w_vec{1}));
+for i=1:10
+    wAvg=wAvg+w_vec{i};
+end
+wAvg=wAvg/10;
+
+costMapAvg=cell(0);
+for i=1:10
+    costMapAvg{i}=w_vec'*featuresMap{i}';
+    costMapAvg{i}=reshape(costMapAvg,100,100);
+    name=num2str(i-1,'%02d');
+    print(strcat(foldername,name,'_costMap_orig'),'-dpng');
+    contour(-costMap{i});
+    print(strcat(foldername,name,'_countourMap_orig'),'-dpng');
+end
+
