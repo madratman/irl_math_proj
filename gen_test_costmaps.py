@@ -1,0 +1,1 @@
+def gen_test_cost_map(data_dir)

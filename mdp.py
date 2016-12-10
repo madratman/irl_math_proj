@@ -189,15 +189,15 @@ class Gridworld:
 		obs_dist_list = obs_dist_list[:no_of_closest_obstacles]
 		obs_class_list = obs_class_list[:no_of_closest_obstacles]
 
-		obs_dist_list = [1./(x+1) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
-		obs_dist_square_list = [1./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+		obs_dist_list_mult = [10./(x+1) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+		obs_dist_square_list = [10./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
 		# bring to range [0,2*pi] (np.arctan2 is [-pi,pi])
 		one_hot_vecs = np.eye(len(self.semantic_obstacle_weights))
 
 		feature_vector = []
 		for idx in range(len(obs_dist_list)):
 			feature_vector.append(one_hot_vecs[obs_class_list[idx]-1].tolist()) # obstacle classes are 1 indexed.
-			feature_vector.append(obs_dist_list[idx])
+			feature_vector.append(obs_dist_list_mult[idx])
 			feature_vector.append(obs_dist_square_list[idx])
 
 		feature_vector.append(1.) #bias
@@ -217,13 +217,15 @@ class Gridworld:
 		obs_dist_list = obs_dist_list[:no_of_closest_obstacles]
 		obs_class_list = obs_class_list[:no_of_closest_obstacles]
 
-		obs_dist_list = [1./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+		obs_dist_list_mult = [10./(x+1) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
+		obs_dist_square_list = [10./((x+1)**2) for x in obs_dist_list] # feature is 1/(dist^2) where dist = distance from obstacle
 		one_hot_vecs = np.eye(len(self.semantic_obstacle_weights))
-
 		feature_vector = []
 		for idx in range(len(obs_dist_list)):
 			feature_vector.append(one_hot_vecs[obs_class_list[idx]-1].tolist()) # obstacle classes are 1 indexed.
-			feature_vector.append(obs_dist_list[idx])
+			feature_vector.append(obs_dist_list_mult[idx])
+			feature_vector.append(obs_dist_square_list[idx])
+		# print feature_vector
 
 		# flatten feature_vector to make a single list 
 		return flatten_list(feature_vector)

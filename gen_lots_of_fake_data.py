@@ -8,30 +8,35 @@ import os
 
 def make_grid(data_dir, obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights):
 	# create object of grid_dims=(no_of_rows, no_of_cols), "four_conn" or "eight_conn", discount
-	grid = Gridworld(grid_dims=(100,100), connectivity="eight_conn", discount=0.98)
-	n_rows, n_cols = grid.grid_dims['rows'], grid.grid_dims['cols']
+	# grid = Gridworld(grid_dims=(100,100), connectivity="eight_conn", discount=0.98)
+	# n_rows, n_cols = grid.grid_dims['rows'], grid.grid_dims['cols']
 
-	# add this info to the grid object
-	grid.add_semantic_obstacle_weights(semantic_obstacle_weights)
+	# # add this info to the grid object
+	# grid.add_semantic_obstacle_weights(semantic_obstacle_weights)
 
-	# add the obstacles to the grid object
-	for semantic_class_index, no_of_obstacles in obstacles_dict.iteritems():
-		for obstacle_idx in range(no_of_obstacles):
-			grid.add_obstacle(Obstacle(location=(randi(0,n_rows-1),randi(0,n_cols-1)),
-									   semantic_class=semantic_class_index, 
-									   zero_out_distance=zero_out_dist_dict[semantic_class_index]))
+	# # add the obstacles to the grid object
+	# for semantic_class_index, no_of_obstacles in obstacles_dict.iteritems():
+	# 	for obstacle_idx in range(no_of_obstacles):
+	# 		grid.add_obstacle(Obstacle(location=(randi(0,n_rows-1),randi(0,n_cols-1)),
+	# 								   semantic_class=semantic_class_index, 
+	# 								   zero_out_distance=zero_out_dist_dict[semantic_class_index]))
 
-	# make cost function and save it to plots/cost_function.png.
-	grid.make_simple_cost_function()
+	# # make cost function and save it to plots/cost_function.png.
+	plt.close()
+	# grid.make_simple_cost_function()
+	file = open(data_dir+"/grid.pkl",'rb')
+	grid = pkl.load(file)
+	file.close()
+
 	grid.plot_cost_function_2d(show_plot=0, filename=data_dir+"/costmap.png")
 	grid.plot_obstacles(filename=data_dir+"/obstacles.png")
 	plt.close()
 	grid.plot_obstacles(filename=data_dir+"/obstacles_only.png")
 
 	# save grid object
-	file = open(data_dir+"/grid.pkl","wb")
-	pkl.dump(grid,file)
-	file.close()
+	# file = open(data_dir+"/grid.pkl","wb")
+	# pkl.dump(grid,file)
+	# file.close()
 
 def do_value_iteration(data_dir):
 	# load grid file generated from test_value_iteration.py
@@ -52,7 +57,6 @@ def do_value_iteration(data_dir):
 
 	# save opt_val_func data so that we don't have to cmpute it again and again
 	np.save(data_dir+'/opt_val_func.npy', opt_val_func)
-
 	# save grid object
 	file = open(data_dir+"/grid.pkl","wb")
 	pkl.dump(grid,file)
@@ -205,7 +209,42 @@ def gen_astar(data_dir, no_of_fake_traj=1):
 		figure = plt.plot([point[1] for point in curr_traj], [point[0] for point in curr_traj])
 		plt.setp(figure, 'linewidth', 2.0)
 
+	plt.gca().invert_yaxis()
 	plt.savefig(data_dir+'/a_star_fake_experts.png', bbox_inches='tight')
+	plt.close()
+
+def plot_test_traj(idx, no_of_fake_traj=1):
+	dir_c = '/home/ratneshmadaan/temp_2'
+	from numpy import genfromtxt
+	grid = Gridworld(grid_dims=(100,100), connectivity="eight_conn", discount=0.98)
+	grid.cost_function = genfromtxt(dir_c+'/cost_map_'+str(idx+1)+'.csv', delimiter=',')
+	grid.cost_function = -grid.cost_function
+	plt.close()
+	ax = plt.subplot(111)
+	# http://stackoverflow.com/questions/8421337/rotating-a-two-dimensional-array-in-python
+	rotated = zip(*grid.cost_function[::-1])
+
+	plt.imshow(rotated)
+	# ax.imshow(grid.cost_function, extent=[0,1,0,1])
+	ax.axis('off')
+	# ax = plt.gca
+
+	# for traj_idx in range(no_of_fake_traj):
+	# 	start_point = (randi(0, grid.grid_dims['rows']-1), randi(0, grid.grid_dims['cols']-1))
+	# 	goal_point = (randi(0, grid.grid_dims['rows']-1), randi(0, grid.grid_dims['cols']-1))
+	# 	print "costmap", idx, ", traj", traj_idx, "of", no_of_fake_traj, ", start:", start_point, "goal:", goal_point
+
+	# 	came_from, cost_so_far = mdp_solvers.a_star(grid, start_point, goal_point)
+	# 	curr_traj = mdp_solvers.reconstruct_path(came_from, start_point, goal_point)
+		
+	# 	figure = plt.plot([point[1] for point in curr_traj], [point[0] for point in curr_traj])
+	# 	plt.setp(figure, 'linewidth', 2.0, color='w')
+	# 	ax.plot(curr_traj[0][1], curr_traj[0][0], marker='*', markersize=15, color="green")
+	# 	ax.plot(curr_traj[-1][1], curr_traj[-1][0], marker='*', markersize=15, color="red")
+
+	plt.gca().invert_xaxis()
+	# plt.savefig(str(idx)+'_a_star_fake_experts.png', bbox_inches='tight')
+	plt.savefig(str(idx)+'_costmap.png', bbox_inches='tight')
 	plt.close()
 
 def recompute_single_feature_thanks_to_bug(data_dir, no_of_fake_traj=1):
@@ -230,17 +269,17 @@ def recompute_single_feature_thanks_to_bug(data_dir, no_of_fake_traj=1):
 		for listicle in list_of_lists:
 			# file is x,y. but state is (y,x) or (row, col)
 			curr_traj.append((int(listicle[1]), int(listicle[0]))) 
-		
-		if not os.path.exists(data_dir+"/features/angle_dist_onehot"):
-			os.makedirs(data_dir+"/features/angle_dist_onehot")			
+			
+		if not os.path.exists(data_dir+"/features/final"):
+			os.makedirs(data_dir+"/features/final")			
 
-		file_4 = open(data_dir+"/features/angle_dist_onehot/a_star_traj_"+str(idx).zfill(len(str(no_of_fake_traj)))+'.txt', 'w')
+		file_4 = open(data_dir+"/features/final/a_star_traj_"+str(idx).zfill(len(str(no_of_fake_traj)))+'.txt', 'w')
 		
 		for idx in range(len(curr_traj)):
-			curr_feats_angle_dist_onehot = grid.get_feature_at_state_angle_dist_onehot(curr_traj[idx], no_of_closest_obstacles=5)
+			curr_feat = grid.get_feature_at_state_dist_onehot(curr_traj[idx], no_of_closest_obstacles=5)
 
 			file_4.write(str(curr_traj[idx][1])+" "+str(curr_traj[idx][0])+" ")
-			file_4.write(' '.join(str(each_feat) for each_feat in curr_feats_angle_dist_onehot))
+			file_4.write(' '.join(str(each_feat) for each_feat in curr_feat))
 			file_4.write("\n")
 
 		file_4.close()
@@ -255,14 +294,26 @@ if __name__ == "__main__":
 
 	no_of_gridworlds = 10
 
-	for idx in range(no_of_gridworlds):
-		curr_data_dir = "data/"+str(idx).zfill(len(str(no_of_gridworlds)))
-		if not os.path.exists(curr_data_dir):
-			os.makedirs(curr_data_dir)
-		# make_grid(curr_data_dir,obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
+	make_grid( "data/"+str(8).zfill(len(str(no_of_gridworlds))),obstacles_dict, zero_out_dist_dict, semantic_obstacle_weights)
+	# for idx in range(no_of_gridworlds):
+		# curr_data_dir = "data/"+str(idx).zfill(len(str(no_of_gridworlds)))
+		# if not os.path.exists(curr_data_dir):
+		# 	os.makedirs(curr_data_dir)
 		# do_value_iteration(curr_data_dir)
 		# gen_traj_from_val_func(curr_data_dir, no_of_fake_traj=500, traj_length_limits=(50,200))
 		# gen_astar(curr_data_dir, no_of_fake_traj=35)
-		recompute_single_feature_thanks_to_bug(curr_data_dir, no_of_fake_traj=35)
+		# recompute_single_feature_thanks_to_bug(curr_data_dir, no_of_fake_traj=35)
+		# plot_test_traj(idx, no_of_fake_traj = 5)
 
-		print idx
+	no_of_gridworlds_test = 5
+	obstacles_dict_test = {1:5, 2:5, 3:5}
+	zero_out_dist_dict_test = {1:20, 2:15, 3:25}
+	semantic_obstacle_weights_test = {1:0.6, 2:0.4, 3:0.2}
+
+	# for idx in range(no_of_gridworlds_test):
+		# curr_data_dir = "data_test/"+str(idx).zfill(len(str(no_of_gridworlds_test)))
+	# 	if not os.path.exists(curr_data_dir):
+	# 		os.makedirs(curr_data_dir)
+		# make_grid(curr_data_dir, obstacles_dict_test, zero_out_dist_dict_test, semantic_obstacle_weights_test)
+
+	# 	print idx

@@ -131,6 +131,10 @@ def value_iteration(grid, thresh=0.01, max_iter=100):
 			state_idx_2d = np.unravel_index(state_idx, (grid.grid_dims['rows'], grid.grid_dims['cols']))
 			old_value = value_func[state_idx_2d]
 			successor_states = grid.get_children(state_idx_2d)
+			# print "old_value", old_value
+			# print "successor_states", successor_states
+			# print "state_idx_2d", state_idx_2d
+			# print reward[state_idx_2d]
 			# bellman backup 
 			#todo
 			# value_func[state_idx_2d] = max(map(lambda x:reward[x]+(grid.discount*value_func[x]), successor_states))
